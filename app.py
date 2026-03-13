@@ -14,12 +14,6 @@ if 'sensory_mode' not in st.session_state:
     st.session_state.sensory_mode = "Standard"
 if 'username' not in st.session_state:
     st.session_state.username = ""
-if 'quiz_active' not in st.session_state:
-    st.session_state.quiz_active = False
-if 'quiz_score' not in st.session_state:
-    st.session_state.quiz_score = 0
-if 'quiz_submitted' not in st.session_state:
-    st.session_state.quiz_submitted = False
 
 # --- STUDENT DATA STATE (For Simulation) ---
 subjects = ["Mathematics", "English", "Physics", "Chemistry", "Biology", "History"]
@@ -193,7 +187,6 @@ if role == "👨‍🏫 Teacher Portal":
     full_class_df = full_class_df.sort_values(by="Total Score", ascending=False)
     
     # KPI Metrics - New "Intervention Priority" logic
-    # Criteria: High compliance but still getting < 350 total score (High effort, low yield)
     intervention_count = len(full_class_df[(full_class_df["AI Compliance"] == "High") & (full_class_df["Total Score"] < 350)])
     
     col1, col2, col3 = st.columns(3)
@@ -305,7 +298,7 @@ elif role == "👨‍👩‍👧 Parent Portal":
     | :--- | :--- | :--- | :--- |
     | **Monday** | Algebra Baseline | 🟢 Completed | *Identified fractions as a core gap.* |
     | **Wednesday** | Visual Fractions | 🟢 Completed | *Adapted materials to match visual learning profile.* |
-    | **Today** | Practice Assessment | 🟡 Pending | *Estimated 15 mins. Focus: Denominators.* |
+    | **Today** | EduAI Tutor Model | 🟡 Pending | *AI-guided interactive lesson.* |
     """)
 
 # ==========================================
@@ -314,94 +307,66 @@ elif role == "👨‍👩‍👧 Parent Portal":
 elif role == "🎓 Student Portal":
     current_student = next((s for s in st.session_state.student_data if s["Student Name"].lower().startswith(st.session_state.username.lower())), st.session_state.student_data[0])
 
-    # --- QUIZ LOGIC HELPER FUNCTIONS ---
-    def render_mini_quiz():
-        st.markdown("### 📝 Algebra Practice Quiz")
-        st.info("Answer the questions below. Orbit AI will adjust your strategy based on the results.")
-        with st.form("mini_quiz_form"):
-            q1 = st.radio("1. What is the lowest common denominator for 1/4 and 1/6?", ["8", "10", "12", "24"])
-            submitted = st.form_submit_button("Submit Answers")
-            if submitted:
-                st.session_state.quiz_score = 100 if q1 == "12" else 0
-                st.session_state.quiz_submitted = True
-                st.rerun()
-
-    def render_quiz_results():
-        if st.session_state.quiz_score == 100:
-            st.success(f"🎉 Perfect Score! You got {st.session_state.quiz_score}%.")
-            st.balloons()
-        else:
-            st.warning(f"👍 Good effort! You scored {st.session_state.quiz_score}%. We'll queue up review materials.")
-        if st.button("Return to Dashboard"):
-            st.session_state.quiz_active = False
-            st.session_state.quiz_submitted = False
-            st.rerun()
-
     # --- PORTAL UI ---
     if st.session_state.sensory_mode == "Neuro-Focus (ADHD-Friendly)":
         st.warning("🎯 **Neuro-Focus Mode Active:** Extraneous dashboard elements are hidden to support deep work.")
         st.title(f"Ready to learn, {st.session_state.username}?")
         
-        if current_student["Path_Restructured"] and not st.session_state.quiz_active:
+        if current_student["Path_Restructured"]:
             st.error("⚠️ **ROUTE RECALCULATED:** Performance drop detected. Let's focus on the basics today.")
             
-        if st.session_state.quiz_submitted: render_quiz_results()
-        elif st.session_state.quiz_active: render_mini_quiz()
-        else:
-            st.markdown("### Your Current Assignment:")
-            st.info("⏱️ **15-Minute Algebra Quiz**")
-            if st.button("Start Assignment", type="primary", use_container_width=True):
-                st.session_state.quiz_active = True
-                st.rerun()
+        st.markdown("### Your Current Assignment:")
+        st.info("⏱️ **AI Interactive Teaching Module**")
+        
+        # Link button routing directly to your external AI model
+        st.link_button("Launch AI Teaching Model", "https://eduaibrain-6bhvtrmivnvozjfrwpqbak.streamlit.app/", type="primary", use_container_width=True)
                 
     else:
         st.title(f"Student Portal: {st.session_state.username}'s Journey")
         st.markdown("Welcome to your EduAI Command Center. Let's hit those academic goals! 🚀")
         
-        if current_student["Path_Restructured"] and not st.session_state.quiz_active:
+        if current_student["Path_Restructured"]:
              st.error("⚠️ **ROUTE RECALCULATED:** Orbit AI detected a drop in performance. Your study path has been dynamically restructured to reinforce foundational concepts. Bearish trend detected, let's buy the dip!")
              
-        if st.session_state.quiz_submitted: render_quiz_results()
-        elif st.session_state.quiz_active: render_mini_quiz()
+        # Generate personalized breakout chart
+        st.markdown(f"#### 📈 Your Predictive Forecasting Chart (Mathematics)")
+        dates = pd.date_range(start="2026-01-01", periods=10, freq='W')
+        base_score = current_student["Mathematics_base"]
+        curr_score = current_student["Mathematics"]
+        
+        hist_grades = [base_score + random.randint(-4, 4) for _ in range(5)] + [curr_score] + [None]*4
+        
+        if current_student["Path_Restructured"]:
+            # Bearish trajectory if they didn't comply
+            forecast = [None]*5 + [curr_score] + [curr_score - i*random.randint(1, 4) for i in range(1, 5)]
+            trend_color = "#dc2626"
+            target_val = 50
         else:
-            # Generate personalized breakout chart
-            st.markdown(f"#### 📈 Your Predictive Forecasting Chart (Mathematics)")
-            dates = pd.date_range(start="2026-01-01", periods=10, freq='W')
-            base_score = current_student["Mathematics_base"]
-            curr_score = current_student["Mathematics"]
+            # Bullish breakout if they complied
+            forecast = [None]*5 + [curr_score] + [curr_score + i*random.randint(2, 6) for i in range(1, 5)]
+            trend_color = "#10b981"
+            target_val = min(100, forecast[-1] + 2)
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=dates[:6], y=hist_grades[:6], mode='lines+markers', name='Actual Performance', line=dict(color='#3b82f6', width=3)))
+        fig.add_trace(go.Scatter(x=dates[5:], y=forecast[5:], mode='lines+markers', name='AI Predicted Trajectory', line=dict(color=trend_color, width=3, dash='dash')))
+        fig.add_hline(y=target_val, line_dash="dot", annotation_text="AI Target", line_color="#f59e0b")
+        
+        fig.update_layout(height=350, margin=dict(l=20, r=20, t=30, b=20), legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("---")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.info("### Next Required Module\n**Interactive AI Teaching Model**\n\nLaunch your custom learning environment.")
             
-            hist_grades = [base_score + random.randint(-4, 4) for _ in range(5)] + [curr_score] + [None]*4
-            
-            if current_student["Path_Restructured"]:
-                # Bearish trajectory if they didn't comply
-                forecast = [None]*5 + [curr_score] + [curr_score - i*random.randint(1, 4) for i in range(1, 5)]
-                trend_color = "#dc2626"
-                target_val = 50
-            else:
-                # Bullish breakout if they complied
-                forecast = [None]*5 + [curr_score] + [curr_score + i*random.randint(2, 6) for i in range(1, 5)]
-                trend_color = "#10b981"
-                target_val = min(100, forecast[-1] + 2)
-            
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=dates[:6], y=hist_grades[:6], mode='lines+markers', name='Actual Performance', line=dict(color='#3b82f6', width=3)))
-            fig.add_trace(go.Scatter(x=dates[5:], y=forecast[5:], mode='lines+markers', name='AI Predicted Trajectory', line=dict(color=trend_color, width=3, dash='dash')))
-            fig.add_hline(y=target_val, line_dash="dot", annotation_text="AI Target", line_color="#f59e0b")
-            
-            fig.update_layout(height=350, margin=dict(l=20, r=20, t=30, b=20), legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-            st.plotly_chart(fig, use_container_width=True)
-            
-            st.markdown("---")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.info("### Next Required Module\n**Algebra Practice Quiz**\n\nEstimated time: 15 mins")
-                if st.button("Start Module", type="primary"):
-                    st.session_state.quiz_active = True
-                    st.rerun()
-            with col2:
-                if current_student["Path_Restructured"]: msg = "We hit a resistance level! Time to restructure and build a new foundation."
-                else: msg = "Massive breakout! Your overall trajectory is trending upward. Keep holding!"
-                st.success(f"### Orbit AI Tutor\n*\"{msg}\"*")
+            # Link button routing directly to your external AI model
+            st.link_button("Launch AI Teaching Model", "https://eduaibrain-6bhvtrmivnvozjfrwpqbak.streamlit.app/", type="primary")
+                
+        with col2:
+            if current_student["Path_Restructured"]: msg = "We hit a resistance level! Time to restructure and build a new foundation."
+            else: msg = "Massive breakout! Your overall trajectory is trending upward. Keep holding!"
+            st.success(f"### Orbit AI Tutor\n*\"{msg}\"*")
 
 st.markdown("---")
 st.caption("EduAI © 2026 | Developed for the GLUK Women in Tech Datathon")
