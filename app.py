@@ -326,7 +326,7 @@ elif role == "🎓 Student Portal":
         st.markdown("Welcome to your EduAI Command Center. Let's hit those academic goals! 🚀")
         
         if current_student["Path_Restructured"]:
-             st.error("⚠️ **ROUTE RECALCULATED:** Orbit AI detected a drop in performance. Your study path has been dynamically restructured to reinforce foundational concepts. Bearish trend detected, let's buy the dip!")
+             st.error("⚠️ **ROUTE RECALCULATED:** Edu_AI detected a drop in performance. Your study path has been dynamically restructured to reinforce foundational concepts. Bearish trend detected, let's buy the dip!")
              
         # Generate personalized breakout chart
         st.markdown(f"#### 📈 Your Predictive Forecasting Chart (Mathematics)")
@@ -366,7 +366,7 @@ elif role == "🎓 Student Portal":
         with col2:
             if current_student["Path_Restructured"]: msg = "We hit a resistance level! Time to restructure and build a new foundation."
             else: msg = "Massive breakout! Your overall trajectory is trending upward. Keep holding!"
-            st.success(f"### Orbit AI Tutor\n*\"{msg}\"*")
+            st.success(f"### Edu_AI Tutor\n*\"{msg}\"*")
 
 st.markdown("---")
-st.caption("EduAI © 2026 | Developed for the GLUK Women in Tech Datathon")
+st.caption("Developed by Team EduAI for the GLUK")
