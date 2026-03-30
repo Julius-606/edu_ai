@@ -5,6 +5,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import random
 
+# --- CONFIG & STYLING (MUST BE THE FIRST STREAMLIT COMMAND!) ---
+st.set_page_config(page_title="EduAI Dashboard", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
+
 # --- SESSION STATE INITIALIZATION ---
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -42,9 +45,6 @@ if 'student_data' not in st.session_state:
         initial_data.append(student_record)
         
     st.session_state.student_data = initial_data
-
-# --- CONFIG & STYLING ---
-st.set_page_config(page_title="EduAI Dashboard", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
     <style>
