@@ -70,7 +70,7 @@ if st.session_state.get('logged_in'):
 # ==========================================
 if not st.session_state.logged_in:
     st.markdown("<h1 style='text-align: center; color: #1e293b;'>🎓 EduAI Platform</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #64748b;'>GLUK Women in Tech Datathon 2026</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b;'>GLUK Research Datathon 2026</p>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
